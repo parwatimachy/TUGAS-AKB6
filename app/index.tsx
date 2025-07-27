@@ -2,32 +2,32 @@ import React from 'react';
 import { SafeAreaView, View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
 import { FontAwesome, Ionicons, MaterialCommunityIcons, Feather, AntDesign } from '@expo/vector-icons';
 
-// --- 1. STRUKTUR DATA BARU: DIOBJEKKAN BERDASARKAN PUSTAKA (dengan ikon unik) ---
-const KATALOG_SIMBOL = {
+// --- 1. NEW DATA STRUCTURE: ORGANIZED BY ICON LIBRARY (each with unique icons) ---
+const ICON_CATALOG = {
   'FontAwesome': [
-    { nama: 'space-shuttle', warna: '#FFFFFF' },
-    { nama: 'qrcode', warna: '#FFFFFF' },
+    { name: 'space-shuttle', color: '#FFFFFF' },
+    { name: 'qrcode', color: '#FFFFFF' },
   ],
   'Ionicons': [
-    { nama: 'skull-outline', warna: '#FFFFFF' },
-    { nama: 'flask-outline', warna: '#FFFFFF' },
+    { name: 'skull-outline', color: '#FFFFFF' },
+    { name: 'flask-outline', color: '#FFFFFF' },
   ],
   'MaterialCommunityIcons': [
-    { nama: 'alien-outline', warna: '#FFFFFF' },
-    { nama: 'dna', warna: '#FFFFFF' },
+    { name: 'alien-outline', color: '#FFFFFF' },
+    { name: 'dna', color: '#FFFFFF' },
   ],
   'Feather': [
-    { nama: 'wind', warna: '#FFFFFF' },
-    { nama: 'anchor', warna: '#FFFFFF' },
+    { name: 'wind', color: '#FFFFFF' },
+    { name: 'anchor', color: '#FFFFFF' },
   ],
   'AntDesign': [
-    { nama: 'rest', warna: '#FFFFFF' },
-    { nama: 'disconnect', warna: '#FFFFFF' },
+    { name: 'rest', color: '#FFFFFF' },
+    { name: 'disconnect', color: '#FFFFFF' },
   ],
 };
 
-// --- 2. PABRIK IKON: MEMETAKAN NAMA KE KOMPONEN AKTUAL ---
-const PabrikIkon = {
+// --- 2. ICON FACTORY: MAP LIBRARY NAME TO ACTUAL COMPONENT ---
+const IconFactory = {
   FontAwesome,
   Ionicons,
   MaterialCommunityIcons,
@@ -35,54 +35,52 @@ const PabrikIkon = {
   AntDesign,
 };
 
-// --- 3. KOMPONEN ANAK DENGAN LOGIKA BERBEDA ---
-interface ItemSimbolProps {
-  IkonKomponen: React.ComponentType<any>;
-  nama: string;
-  warna: string;
-  pustaka: string;
-  index: number; // Tambahkan index untuk menentukan warna latar
+// --- 3. CHILD COMPONENT WITH CONDITIONAL STYLING ---
+interface IconItemProps {
+  IconComponent: React.ComponentType<any>;
+  name: string;
+  color: string;
+  library: string;
+  index: number; // Used to determine background color
 }
 
-const ItemSimbol: React.FC<ItemSimbolProps> = ({ IkonKomponen, nama, warna, pustaka, index }) => {
-  // Tentukan gaya kartu berdasarkan index (genap/ganjil)
-  const gayaLatar = index % 2 === 0 ? visual.bingkaiItemHitam : visual.bingkaiItemMerah;
+const IconItem: React.FC<IconItemProps> = ({ IconComponent, name, color, library, index }) => {
+  const backgroundStyle = index % 2 === 0 ? styles.cardDark : styles.cardRed;
 
   return (
-    <View style={[visual.bingkaiItem, gayaLatar]}>
-      <IkonKomponen name={nama} size={48} color={warna} />
-      <Text style={visual.teksNamaItem}>{nama}</Text>
-      <Text style={visual.teksPustakaItem}>{pustaka}</Text>
+    <View style={[styles.cardBase, backgroundStyle]}>
+      <IconComponent name={name} size={48} color={color} />
+      <Text style={styles.iconNameText}>{name}</Text>
+      <Text style={styles.libraryText}>{library}</Text>
     </View>
   );
 };
 
-// --- 4. KOMPONEN UTAMA DENGAN RENDER BERTINGKAT ---
-export default function PameranSimbolLayar() {
-  // Mengubah data objek menjadi satu array tunggal untuk memudahkan looping dengan index
-  const daftarIkonLengkap = Object.entries(KATALOG_SIMBOL).flatMap(([namaPustaka, daftarIkon]) => 
-    daftarIkon.map(ikon => ({ ...ikon, pustaka: namaPustaka }))
+// --- 4. MAIN COMPONENT WITH NESTED RENDERING ---
+export default function IconGalleryScreen() {
+  const fullIconList = Object.entries(ICON_CATALOG).flatMap(([libraryName, icons]) => 
+    icons.map(icon => ({ ...icon, library: libraryName }))
   );
 
   return (
-    <SafeAreaView style={visual.wadahLayar}>
+    <SafeAreaView style={styles.screenContainer}>
       <ScrollView>
-        <View style={visual.areaJudul}>
-          <Text style={visual.teksJudulUtama}>Koleksi Simbol Vektor</Text>
-          <Text style={visual.teksSubJudul}>10 Contoh dari Berbagai Pustaka</Text>
+        <View style={styles.headerContainer}>
+          <Text style={styles.mainTitle}>Vector Icon Collection</Text>
+          <Text style={styles.subTitle}>10 Samples from Various Libraries</Text>
         </View>
-        <View style={visual.areaKisi}>
-          {daftarIkonLengkap.map((ikon, index) => {
-            const IkonKomponen = PabrikIkon[ikon.pustaka as keyof typeof PabrikIkon];
-            if (!IkonKomponen) return null;
+        <View style={styles.gridContainer}>
+          {fullIconList.map((icon, index) => {
+            const IconComponent = IconFactory[icon.library as keyof typeof IconFactory];
+            if (!IconComponent) return null;
 
             return (
-              <ItemSimbol
-                key={${ikon.pustaka}-${ikon.nama}}
-                IkonKomponen={IkonKomponen}
-                nama={ikon.nama}
-                warna={ikon.warna}
-                pustaka={ikon.pustaka}
+              <IconItem
+                key={`${icon.library}-${icon.name}`}
+                IconComponent={IconComponent}
+                name={icon.name}
+                color={icon.color}
+                library={icon.library}
                 index={index}
               />
             );
@@ -93,64 +91,64 @@ export default function PameranSimbolLayar() {
   );
 }
 
-// --- 5. GAYA VISUAL BARU: TEMA "HITAM & MERAH" ---
-const lebarLayar = Dimensions.get('window').width;
-const lebarItem = (lebarLayar - 48) / 2;
+// --- 5. STYLING: DARK & RED THEME ---
+const screenWidth = Dimensions.get('window').width;
+const itemWidth = (screenWidth - 48) / 2;
 
-const visual = StyleSheet.create({
-  wadahLayar: {
+const styles = StyleSheet.create({
+  screenContainer: {
     flex: 1,
-    backgroundColor: '#111111', // Latar belakang hitam pekat
+    backgroundColor: '#111111',
   },
-  areaJudul: {
+  headerContainer: {
     paddingVertical: 32,
     alignItems: 'center',
     borderBottomWidth: 1,
     borderBottomColor: '#444444',
   },
-  teksJudulUtama: {
+  mainTitle: {
     fontSize: 26,
     fontWeight: '700',
     color: '#FFFFFF',
   },
-  teksSubJudul: {
+  subTitle: {
     fontSize: 16,
     color: '#AAAAAA',
     marginTop: 8,
   },
-  areaKisi: {
+  gridContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     padding: 16,
     paddingTop: 24,
   },
-  bingkaiItem: { // Gaya dasar untuk semua item
+  cardBase: {
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    width: lebarItem,
+    width: itemWidth,
     aspectRatio: 1,
     borderWidth: 1,
   },
-  bingkaiItemHitam: { // Latar Hitam
+  cardDark: {
     backgroundColor: '#1E1E1E',
     borderColor: '#333333',
   },
-  bingkaiItemMerah: { // Latar Merah
+  cardRed: {
     backgroundColor: '#DA291C',
     borderColor: '#FF5555',
   },
-  teksNamaItem: {
+  iconNameText: {
     fontSize: 15,
     fontWeight: '600',
     color: '#FFFFFF',
     marginTop: 16,
     textAlign: 'center',
   },
-  teksPustakaItem: {
+  libraryText: {
     fontSize: 12,
     color: '#BBBBBB',
     marginTop: 4,
